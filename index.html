@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consumer Credit Risk &amp; Loan Default Intelligence | Ahmed Elsayed</title>
+<meta name="description" content="End-to-end Financial Risk & Credit Underwriting analytics project: Power BI dashboard + underwriting policy audit across 601 consumer loans quantifying 24.3% default drivers across FICO, DTI, loan purpose, and employment tenure.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0B1220;
+    --bg-2: #0F1A2E;
+    --card: #131F36;
+    --border: #22324F;
+    --text: #E6ECF5;
+    --muted: #93A3BC;
+    --navy: #112D4E;
+    --blue: #3F72AF;
+    --ice: #DBE2EF;
+    --red: #EF4444;
+    --teal: #14B8A6;
+    --amber: #F59E0B;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11, 18, 32, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .container { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .brand-badge {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--amber), var(--blue));
+    display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #fff;
+  }
+  .nav-links { display: flex; gap: 24px; font-size: 14px; color: var(--muted); }
+  .nav-links a:hover { color: var(--text); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 10px; font-weight: 600; font-size: 14px;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 8px 24px rgba(63,114,175,.35); }
+  .btn-primary:hover { background: #4F82BF; }
+  .btn-ghost { border: 1px solid var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--blue); }
+
+  /* HERO */
+  .hero { padding: 96px 0 72px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: -200px -100px auto auto;
+    width: 640px; height: 640px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,158,11,.22), transparent 65%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ice);
+    background: rgba(63,114,175,.15); border: 1px solid rgba(63,114,175,.4);
+    padding: 6px 12px; border-radius: 999px; margin-bottom: 22px;
+  }
+  h1 { font-size: clamp(36px, 5.2vw, 60px); line-height: 1.08; font-weight: 800; letter-spacing: -.02em; max-width: 900px; }
+  h1 .accent { background: linear-gradient(90deg, var(--amber), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { font-size: 19px; color: var(--muted); max-width: 740px; margin: 22px 0 34px; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 34px; }
+  .tag { font-size: 12.5px; color: var(--muted); border: 1px solid var(--border); padding: 5px 11px; border-radius: 8px; background: var(--bg-2); }
+
+  /* KPI STRIP */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 64px; }
+  .kpi {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px; position: relative; overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .kpi:hover { transform: translateY(-4px); border-color: var(--blue); }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c, var(--blue)); }
+  .kpi .label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .kpi .value { font-size: 32px; font-weight: 800; margin: 6px 0 2px; color: var(--c, var(--text)); }
+  .kpi .sub { font-size: 12.5px; color: var(--muted); }
+
+  /* SECTIONS */
+  section { padding: 88px 0; }
+  section.alt { background: var(--bg-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .section-head { max-width: 780px; margin-bottom: 44px; }
+  .section-head .kicker { font-size: 13px; font-weight: 700; color: var(--amber); letter-spacing: .1em; text-transform: uppercase; }
+  h2 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; letter-spacing: -.015em; margin: 8px 0 14px; line-height: 1.15; }
+  .section-head p { color: var(--muted); font-size: 17px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px; }
+  .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .card .card-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 18px; }
+  .chart-box { position: relative; height: 300px; }
+  .insight {
+    margin-top: 16px; font-size: 14px; color: var(--ice);
+    background: rgba(63,114,175,.1); border-left: 3px solid var(--blue);
+    padding: 10px 14px; border-radius: 0 8px 8px 0;
+  }
+  .insight.red { background: rgba(239,68,68,.08); border-color: var(--red); }
+  .insight.teal { background: rgba(20,184,166,.08); border-color: var(--teal); }
+  .insight.amber { background: rgba(245,158,11,.08); border-color: var(--amber); }
+
+  /* PROBLEM CARDS */
+  .q-card { position: relative; }
+  .q-num { font-size: 13px; font-weight: 800; color: var(--amber); margin-bottom: 10px; }
+  .q-card p { color: var(--muted); font-size: 14.5px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.highlight td { color: var(--red); font-weight: 700; }
+
+  /* 9-BOX UNDERWRITING MATRIX */
+  .ninebox { display: grid; grid-template-columns: 115px repeat(3, 1fr); gap: 10px; }
+  .nb-label { display: flex; align-items: center; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .nb-head { text-align: center; font-size: 12px; color: var(--muted); font-weight: 600; padding-bottom: 4px; }
+  .nb-cell { border-radius: 12px; padding: 15px; border: 1px solid var(--border); transition: transform .2s; }
+  .nb-cell:hover { transform: scale(1.03); }
+  .nb-cell .n { font-size: 26px; font-weight: 800; }
+  .nb-cell .t { font-size: 13px; font-weight: 700; margin-top: 2px; }
+  .nb-cell .e { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .nb-teal { background: rgba(20,184,166,.12); } .nb-teal .n { color: var(--teal); }
+  .nb-amber { background: rgba(245,158,11,.12); } .nb-amber .n { color: var(--amber); }
+  .nb-red { background: rgba(239,68,68,.14); } .nb-red .n { color: var(--red); }
+
+  /* PIPELINE */
+  .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; position: relative; }
+  .step { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; }
+  .step .s-num { width: 30px; height: 30px; border-radius: 8px; background: var(--navy); border: 1px solid var(--blue); display: grid; place-items: center; font-size: 13px; font-weight: 800; margin-bottom: 12px; }
+  .step h4 { font-size: 15px; margin-bottom: 6px; }
+  .step p { font-size: 13px; color: var(--muted); }
+  .step:not(:last-child)::after { content: "→"; position: absolute; right: -13px; top: 50%; transform: translateY(-50%); color: var(--blue); font-weight: 800; }
+
+  /* RECS */
+  .rec { display: grid; grid-template-columns: 56px 1fr auto; gap: 18px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--border); }
+  .rec:last-child { border-bottom: none; }
+  .rec .p { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; background: var(--navy); border: 1px solid var(--blue); }
+  .rec h4 { font-size: 16px; margin-bottom: 3px; }
+  .rec p { font-size: 14px; color: var(--muted); }
+  .rec .roi { text-align: right; font-weight: 800; color: var(--teal); white-space: nowrap; }
+  .rec .roi small { display: block; color: var(--muted); font-weight: 500; font-size: 12px; }
+
+  /* STACK */
+  .stack { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stack .card h3 { font-size: 15px; margin-bottom: 10px; }
+  .stack ul { list-style: none; font-size: 14px; color: var(--muted); }
+  .stack li { padding: 3px 0; }
+  .stack li::before { content: "▸ "; color: var(--amber); }
+
+  /* CTA */
+  .cta { text-align: center; }
+  .cta-box { background: linear-gradient(135deg, var(--navy), #1C3D66); border: 1px solid var(--blue); border-radius: 24px; padding: 60px 30px; }
+  .cta-box p { color: var(--ice); max-width: 620px; margin: 0 auto 30px; }
+  .cta-box .hero-actions { justify-content: center; }
+
+  footer { padding: 34px 0; border-top: 1px solid var(--border); color: var(--muted); font-size: 13.5px; }
+  footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+  /* REVEAL ANIMATION */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 960px) {
+    .kpis, .stack { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: 1fr; }
+    .step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -18px; transform: translateX(50%); }
+    .nav-links { display: none; }
+    .ninebox { grid-template-columns: 80px repeat(3, 1fr); }
+    .rec { grid-template-columns: 46px 1fr; }
+    .rec .roi { grid-column: 2; text-align: left; }
+  }
+  @media (max-width: 560px) {
+    .kpis, .stack { grid-template-columns: 1fr; }
+    .nb-cell .n { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="#" class="brand"><span class="brand-badge">CR</span> Credit Risk Intelligence</a>
+    <div class="nav-links">
+      <a href="#problem">Problem</a>
+      <a href="#credit">FICO &amp; DTI</a>
+      <a href="#purpose">Loan Purpose</a>
+      <a href="#policy">Underwriting Matrix</a>
+      <a href="#method">Method</a>
+      <a href="#actions">Actions</a>
+    </div>
+    <a class="btn btn-primary" href="https://github.com/ahmedelsayed7115/credit-risk-loan-analytics" target="_blank" rel="noopener">View on GitHub</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="container">
+    <span class="eyebrow">Financial Risk Analytics · Credit Underwriting · Power BI</span>
+    <h1>Turning a <span class="accent">24.3% loan default rate</span> into a precision underwriting policy.</h1>
+    <p class="lead">An end-to-end credit risk audit across 601 consumer loans and borrower profiles—isolating FICO score inflection thresholds, Debt-to-Income (DTI) cliffs, loan-size amplification effects, and early-tenure employment risk in Power BI.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#credit">Explore the findings ↓</a>
+      <a class="btn btn-ghost" href="https://github.com/ahmedelsayed7115/credit-risk-loan-analytics/raw/main/loan_risk.pbix">Download .pbix</a>
+    </div>
+    <div class="tags">
+      <span class="tag">Power BI (.pbix)</span><span class="tag">Credit Risk Modeling</span><span class="tag">DAX</span>
+      <span class="tag">FICO Segmentation</span><span class="tag">DTI Threshold Analysis</span><span class="tag">Underwriting Policy</span>
+      <span class="tag">Financial Analytics</span><span class="tag">Data Cleaning</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi reveal" style="--c: var(--red)">
+        <div class="label">Portfolio Default Rate</div>
+        <div class="value" data-count="24.29" data-suffix="%" data-dec="2">0%</div>
+        <div class="sub">146 defaults across 601 loans</div>
+      </div>
+      <div class="kpi reveal" style="--c: var(--red)">
+        <div class="label">Subprime (&lt;600 FICO) Default</div>
+        <div class="value" data-count="49.14" data-suffix="%" data-dec="2">0%</div>
+        <div class="sub">57 of 116 loans · 4.2× vs. 750+ tier</div>
+      </div>
+      <div class="kpi reveal" style="--c: var(--amber)">
+        <div class="label">Defaulted Borrower Avg DTI</div>
+        <div class="value" data-count="57.90" data-suffix="%" data-dec="1">0%</div>
+        <div class="sub">+10.8 pts above non-defaulted (47.1%)</div>
+      </div>
+      <div class="kpi reveal" style="--c: var(--teal)">
+        <div class="label">Prime 700+ FICO Default</div>
+        <div class="value" data-count="12.93" data-suffix="%" data-dec="2">0%</div>
+        <div class="sub">41 of 317 loans · 700 risk boundary</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PROBLEM -->
+<section id="problem" class="alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">The Lending Problem</span>
+      <h2>Three underwriting questions the credit committee needed solved</h2>
+      <p>With nearly 1 in 4 loans (146 of 601) entering default, underwriting rules relied on broad averages rather than empirically validated FICO, DTI, and tenure cutoffs.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card q-card reveal">
+        <div class="q-num">01 · CREDIT &amp; DTI CUTOFFS</div>
+        <h3>Where do FICO and DTI default risks inflect?</h3>
+        <p>Subprime borrowers (520–599) default at 49.1%, while risk drops sharply at FICO 700 (16.3%) and escalates above 40% DTI (27.6% → 36.0% at 60%+ DTI).</p>
+      </div>
+      <div class="card q-card reveal">
+        <div class="q-num">02 · PURPOSE &amp; TICKET SIZE</div>
+        <h3>Which loan purposes and ticket sizes amplify loss?</h3>
+        <p>Wedding (32.1%) and Home Improvement (28.6%) lead in frequency, while Medical ($30.4K), Education ($29.2K), and Debt Consolidation ($29.0K) defaults carry 38%–71% larger ticket sizes.</p>
+      </div>
+      <div class="card q-card reveal">
+        <div class="q-num">03 · EMPLOYMENT STABILITY</div>
+        <h3>Does job type or tenure predict default better?</h3>
+        <p>Employment tenure (&lt;2 years at 34.5% default vs. 2–4 years at 17.5%) is a nearly 2× stronger discriminator than employment category alone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLAR 1: CREDIT SCORE & DTI -->
+<section id="credit">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Pillar 1 · Credit Score &amp; Debt-to-Income Diagnostics</span>
+      <h2>FICO 700 and DTI 40% define the portfolio's natural risk boundaries</h2>
+      <p>Cross-tabulating borrower credit profiles against loan outcomes reveals a 4.2× default multiplier between subprime (&lt;600) and super-prime (750+) tiers, compounded by a +10.8 percentage-point DTI gap.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card reveal">
+        <h3>Default Rate by Credit Score Band</h3>
+        <div class="card-sub">Default rate (%) across 601 loans by FICO tier</div>
+        <div class="chart-box"><canvas id="creditScoreChart"></canvas></div>
+        <div class="insight red"><b>520–599 FICO borrowers default at 49.1% (57/116)</b>—nearly half of all originations in that band.</div>
+      </div>
+      <div class="card reveal">
+        <h3>Default Rate by Debt-to-Income (DTI) Ratio</h3>
+        <div class="card-sub">Escalation across borrower leverage bands</div>
+        <div class="chart-box"><canvas id="dtiChart"></canvas></div>
+        <div class="insight amber">Default risk more than doubles from the <b>20–40% DTI safe zone (11.9%)</b> to <b>40–60% DTI (27.6%)</b> and <b>60%+ DTI (36.0%)</b>.</div>
+      </div>
+      <div class="card reveal">
+        <h3>Default Rate by Employment Tenure</h3>
+        <div class="card-sub">Years employed vs. portfolio default rate (%)</div>
+        <div class="chart-box"><canvas id="tenureChart"></canvas></div>
+        <div class="insight red">Borrowers with <b>&lt;2 years tenure default at 34.5% (29/84)</b>—nearly 2× the 2–4 year cohort (17.5%).</div>
+      </div>
+      <div class="card reveal">
+        <h3>Default Rate by Employment Status</h3>
+        <div class="card-sub">Across 601 borrowers (Full-Time, Self-Employed, Part-Time, Contract, Retired)</div>
+        <div class="chart-box"><canvas id="empStatusChart"></canvas></div>
+        <div class="insight"><b>Part-Time borrowers (27.7%, 18/65)</b> and <b>Self-Employed (24.8%, 26/105)</b> carry the highest status-level risk.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLAR 2: LOAN PURPOSE & TICKET SIZE -->
+<section id="purpose" class="alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Pillar 2 · Loan Purpose &amp; Ticket-Size Amplification</span>
+      <h2>Large ticket sizes drive defaults in Education, Medical &amp; Consolidation loans</h2>
+      <p>While discretionary Wedding loans exhibit the highest default incidence (32.1%), non-discretionary categories default when loan principal stretches 38% to 71% above normal category averages.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card reveal">
+        <h3>Default Rate by Loan Purpose (10 Categories)</h3>
+        <div class="card-sub">Percentage of loans defaulting within each purpose segment</div>
+        <div class="chart-box" style="height:340px"><canvas id="purposeChart"></canvas></div>
+        <div class="insight red"><b>Wedding (32.1%, 18/56)</b>, <b>Home Improvement (28.6%, 20/70)</b>, and <b>Auto Loans (27.1%, 16/59)</b> top default incidence.</div>
+      </div>
+      <div class="card reveal">
+        <h3>Ticket-Size Amplification: Defaulted vs. Non-Defaulted</h3>
+        <div class="card-sub">Average loan amount ($) where large principals trigger default</div>
+        <div class="chart-box" style="height:340px"><canvas id="ticketSizeChart"></canvas></div>
+        <div class="insight amber">Defaulted <b>Education loans average $29,183 vs. $17,115 (+70.5%)</b>; defaulted <b>Medical loans average $30,421 vs. $21,298 (+42.8%)</b>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLAR 3: 9-BOX UNDERWRITING POLICY MATRIX -->
+<section id="policy">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Pillar 3 · Underwriting Policy Matrix</span>
+      <h2>A 9-box credit decision framework for automated triage</h2>
+      <p>Combining the FICO 600 / 700 boundaries with the 40% / 50% DTI cutoffs segments applicants into automated approval, conditional collateral review, and hard-decline zones.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card reveal">
+        <h3>9-Box Credit Score × DTI Decision Matrix</h3>
+        <div class="card-sub">Policy rules mapping borrower FICO tier against Debt-to-Income leverage</div>
+        <div class="ninebox">
+          <div></div>
+          <div class="nb-head">DTI &lt; 40%<br>(Safe Zone)</div>
+          <div class="nb-head">DTI 40–50%<br>(Watch Zone)</div>
+          <div class="nb-head">DTI &gt; 50%<br>(High Leverage)</div>
+
+          <div class="nb-label">Prime<br>700+ FICO</div>
+          <div class="nb-cell nb-teal"><div class="n">Approve</div><div class="t">Standard Rate</div><div class="e">~11.7%–16.3% base risk</div></div>
+          <div class="nb-cell nb-teal"><div class="n">Approve</div><div class="t">Verify Income</div><div class="e">Cap ticket &lt;$25K</div></div>
+          <div class="nb-cell nb-amber"><div class="n">Review</div><div class="t">+150 bps Rate</div><div class="e">Require DTI exception</div></div>
+
+          <div class="nb-label">Near-Prime<br>600–699</div>
+          <div class="nb-cell nb-amber"><div class="n">Conditional</div><div class="t">Standard Cap</div><div class="e">28.0%–29.0% base risk</div></div>
+          <div class="nb-cell nb-amber"><div class="n">Collateral</div><div class="t">Co-Signer Req.</div><div class="e">Verify ≥2 yr tenure</div></div>
+          <div class="nb-cell nb-red"><div class="n">Decline</div><div class="t">DTI Cutoff</div><div class="e">Exceeds 50% hard cap</div></div>
+
+          <div class="nb-label">Subprime<br>520–599</div>
+          <div class="nb-cell nb-red"><div class="n">Secured</div><div class="t">Strict Collateral</div><div class="e">49.1% band default</div></div>
+          <div class="nb-cell nb-red"><div class="n">Decline</div><div class="t">High Loss</div><div class="e">Subprime + elevated DTI</div></div>
+          <div class="nb-cell nb-red"><div class="n">Decline</div><div class="t">Hard Block</div><div class="e">Critical default probability</div></div>
+        </div>
+        <div class="insight teal" style="margin-top:18px;">Enforcing a <b>FICO ≥600 floor</b> and <b>50% DTI cap</b> intercepts the two segments generating over <b>65% of portfolio defaults</b>.</div>
+      </div>
+
+      <div class="card reveal">
+        <h3>Credit Score Band Performance Summary</h3>
+        <div class="card-sub">Full breakdown across all 601 merged loan records</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Credit Score Band</th><th class="num">Total Loans</th><th class="num">Defaults</th>
+              <th class="num">Default Rate</th><th>Risk Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight"><td><strong>520 – 599 (Subprime)</strong></td><td class="num">116</td><td class="num">57</td><td class="num">49.1%</td><td>🔴 Critical</td></tr>
+            <tr><td><strong>600 – 649 (Near-Prime)</strong></td><td class="num">93</td><td class="num">27</td><td class="num">29.0%</td><td>🟡 High</td></tr>
+            <tr><td><strong>650 – 699 (Near-Prime+)</strong></td><td class="num">75</td><td class="num">21</td><td class="num">28.0%</td><td>🟡 High</td></tr>
+            <tr><td><strong>700 – 749 (Prime)</strong></td><td class="num">86</td><td class="num">14</td><td class="num">16.3%</td><td>🟢 Moderate</td></tr>
+            <tr><td><strong>750+ (Super-Prime)</strong></td><td class="num">231</td><td class="num">27</td><td class="num">11.7%</td><td>🟢 Low</td></tr>
+            <tr style="border-top:2px solid var(--border);font-weight:700;"><td>Total Portfolio</td><td class="num">601</td><td class="num">146</td><td class="num">24.3%</td><td>Baseline</td></tr>
+          </tbody>
+        </table>
+        <div class="insight" style="margin-top:18px;">Borrowers with <b>700+ FICO</b> represent <b>52.7% of loan volume (317/601)</b> but only <b>28.1% of defaults (41/146)</b>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METHOD -->
+<section id="method" class="alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">How It Was Built</span>
+      <h2>From relational borrower &amp; application logs to underwriting rules</h2>
+    </div>
+    <div class="pipeline reveal">
+      <div class="step"><div class="s-num">1</div><h4>Ingest</h4><p><code>borrower_profiles.csv</code> &amp; <code>loan_applications.csv</code> (601 records).</p></div>
+      <div class="step"><div class="s-num">2</div><h4>Clean &amp; Merge</h4><p>Entity resolution and schema normalization into <code>merged_loan_data_fixed.csv</code>.</p></div>
+      <div class="step"><div class="s-num">3</div><h4>Segment</h4><p>FICO bands, DTI quartiles, tenure buckets, and 10 loan purpose cohorts.</p></div>
+      <div class="step"><div class="s-num">4</div><h4>Model in BI</h4><p>Interactive Power BI (<code>loan_risk.pbix</code>) cross-filtering risk drivers.</p></div>
+      <div class="step"><div class="s-num">5</div><h4>Codify Policy</h4><p>9-box underwriting matrix &amp; executive web dashboard.</p></div>
+    </div>
+
+    <div class="stack" style="margin-top: 40px">
+      <div class="card reveal"><h3>Power BI &amp; DAX</h3><ul><li>Interactive .pbix report</li><li>Dynamic default rates</li><li>Cross-filtered slicers</li><li>Risk tier formatting</li></ul></div>
+      <div class="card reveal"><h3>Data Engineering</h3><ul><li>Multi-table CSV merge</li><li>Missing-value audit</li><li>Band discretization</li><li>601 validated loans</li></ul></div>
+      <div class="card reveal"><h3>Credit Risk</h3><ul><li>FICO cutoff discovery</li><li>DTI elasticity audit</li><li>Ticket-size severity</li><li>Tenure stability check</li></ul></div>
+      <div class="card reveal"><h3>Deliverables</h3><ul><li>Power BI workbook</li><li>Merged clean dataset</li><li>Interactive web app</li><li>Underwriting policy</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ACTIONS -->
+<section id="actions">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Underwriting Recommendations</span>
+      <h2>Five policy rules tied directly to portfolio default metrics</h2>
+    </div>
+    <div class="card reveal">
+      <div class="rec"><div class="p">1</div><div><h4>Enforce FICO 600 Minimum Floor for Unsecured Loans</h4><p>Require full collateral or decline applicants in the 520–599 band where 57 of 116 loans defaulted.</p></div><div class="roi">49.1% Rate<small>57 defaults intercepted</small></div></div>
+      <div class="rec"><div class="p">2</div><div><h4>Set 50% Hard DTI Ceiling &amp; 40% Conditional Review</h4><p>Cap standard approvals at 40% DTI (11.9% default in 20–40% band) and block unsecured originations above 60% DTI.</p></div><div class="roi">36.0% → 11.9%<small>10.8-pt DTI gap closed</small></div></div>
+      <div class="rec"><div class="p">3</div><div><h4>Cap Principal Amounts on Education, Medical &amp; Consolidation</h4><p>Require secondary review when requested principal exceeds $22,000 in categories where defaulters borrow $29K–$30.4K.</p></div><div class="roi">+43% to +71%<small>Ticket-size spike curbed</small></div></div>
+      <div class="rec"><div class="p">4</div><div><h4>Early-Tenure (&lt;2 Years Employed) Income Verification</h4><p>Mandate co-signers or 6-month reserve verification for applicants employed under 2 years (34.5% default vs. 17.5% at 2–4 yrs).</p></div><div class="roi">2.0× Risk<small>29 early-tenure defaults</small></div></div>
+      <div class="rec"><div class="p">5</div><div><h4>Risk-Adjusted Pricing for Discretionary Wedding &amp; Auto Loans</h4><p>Apply +150–250 bps rate premiums and tighter DTI caps (&lt;40%) on Wedding (32.1% default) and Part-Time (27.7%) segments.</p></div><div class="roi">32.1% Peak<small>Highest purpose default</small></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box reveal">
+      <h2>Explore the Credit Risk Power BI Project</h2>
+      <p>The Power BI dashboard (<code>loan_risk.pbix</code>), cleaned merged dataset, and source tables are all available on GitHub.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/ahmedelsayed7115/credit-risk-loan-analytics" target="_blank" rel="noopener">View Repository</a>
+        <a class="btn btn-ghost" href="https://github.com/ahmedelsayed7115/credit-risk-loan-analytics/raw/main/loan_risk.pbix">Download .pbix</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span>© 2026 Ahmed Elsayed · Consumer Credit Risk &amp; Loan Default Intelligence</span>
+    <span>Data: 601 merged consumer loan applications &amp; borrower profiles</span>
+  </div>
+</footer>
+
+<script>
+  // ---------- Reveal on scroll ----------
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ---------- Animated KPI counters ----------
+  function animateCount(el) {
+    const target = parseFloat(el.dataset.count);
+    const dec = parseInt(el.dataset.dec || 0);
+    const pre = el.dataset.prefix || '';
+    const suf = el.dataset.suffix || '';
+    const dur = 1400;
+    const start = performance.now();
+    function tick(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = pre + (target * eased).toFixed(dec) + suf;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  const kpiObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { animateCount(e.target); kpiObserver.unobserve(e.target); }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-count]').forEach(el => kpiObserver.observe(el));
+
+  // ---------- Charts ----------
+  Chart.defaults.color = '#93A3BC';
+  Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
+  Chart.defaults.borderColor = 'rgba(147,163,188,0.12)';
+  Chart.defaults.plugins.legend.labels.boxWidth = 12;
+
+  const C = { blue: '#3F72AF', red: '#EF4444', teal: '#14B8A6', amber: '#F59E0B', slate: '#64748B' };
+
+  const chartFactories = {
+    creditScoreChart: (ctx) => new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['520–599 (116)', '600–649 (93)', '650–699 (75)', '700–749 (86)', '750+ (231)'],
+        datasets: [{
+          label: 'Default Rate (%)',
+          data: [49.1, 29.0, 28.0, 16.3, 11.7],
+          backgroundColor: [C.red, C.amber, C.amber, C.blue, C.teal],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw + '% default rate' } } },
+        scales: { y: { beginAtZero: true, max: 55, ticks: { callback: v => v + '%' } }, x: { grid: { display: false } } }
+      }
+    }),
+    dtiChart: (ctx) => new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['0–20% DTI (48)', '20–40% DTI (185)', '40–60% DTI (196)', '60%+ DTI (172)'],
+        datasets: [{
+          label: 'Default Rate (%)',
+          data: [16.7, 11.9, 27.6, 36.0],
+          backgroundColor: [C.blue, C.teal, C.amber, C.red],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw + '% default rate' } } },
+        scales: { y: { beginAtZero: true, max: 42, ticks: { callback: v => v + '%' } }, x: { grid: { display: false } } }
+      }
+    }),
+    tenureChart: (ctx) => new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['< 2 Years (84)', '2–4 Years (114)', '5–9 Years (126)', '10+ Years (277)'],
+        datasets: [{
+          label: 'Default Rate (%)',
+          data: [34.5, 17.5, 26.2, 23.1],
+          backgroundColor: [C.red, C.teal, C.amber, C.blue],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw + '% default rate' } } },
+        scales: { y: { beginAtZero: true, max: 40, ticks: { callback: v => v + '%' } }, x: { grid: { display: false } } }
+      }
+    }),
+    empStatusChart: (ctx) => new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Part-Time (65)', 'Self-Employed (105)', 'Full-Time (305)', 'Retired (60)', 'Contract (66)'],
+        datasets: [{
+          label: 'Default Rate (%)',
+          data: [27.7, 24.8, 23.9, 23.3, 22.7],
+          backgroundColor: [C.amber, C.blue, C.blue, C.slate, C.teal],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw + '% default rate' } } },
+        scales: { y: { beginAtZero: true, max: 35, ticks: { callback: v => v + '%' } }, x: { grid: { display: false } } }
+      }
+    }),
+    purposeChart: (ctx) => new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Wedding', 'Home Improvement', 'Auto Loan', 'Business Loan', 'Education', 'Vacation', 'Major Purchase', 'Debt Consolidation', 'Moving', 'Medical Expenses'],
+        datasets: [{
+          data: [32.1, 28.6, 27.1, 24.1, 22.6, 22.6, 22.1, 21.6, 21.4, 20.6],
+          backgroundColor: (c) => c.dataIndex === 0 ? C.red : (c.dataIndex < 3 ? C.amber : C.blue),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y', maintainAspectRatio: false,
+        layout: { padding: { left: 6 } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw + '% default rate' } } },
+        scales: { x: { beginAtZero: true, max: 36, ticks: { callback: v => v + '%' } }, y: { grid: { display: false } } }
+      }
+    }),
+    ticketSizeChart: (ctx) => new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Medical Expenses', 'Education', 'Debt Consolidation', 'Auto Loan', 'Portfolio Average'],
+        datasets: [
+          { label: 'Defaulted Avg Loan ($)', data: [30421, 29183, 29036, 22644, 22950], backgroundColor: C.red, borderRadius: 6 },
+          { label: 'Non-Defaulted Avg Loan ($)', data: [21298, 17115, 21030, 18405, 21860], backgroundColor: C.teal, borderRadius: 6 }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: c => c.dataset.label + ': $' + c.raw.toLocaleString() } } },
+        scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' } }, x: { grid: { display: false } } }
+      }
+    })
+  };
+
+  const chartObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        chartFactories[e.target.id](e.target);
+        chartObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.25 });
+  Object.keys(chartFactories).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) chartObserver.observe(el);
+  });
+</script>
+</body>
+</html>
